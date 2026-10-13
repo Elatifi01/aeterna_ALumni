@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="Aeterna">
+  <!-- Favicon / app icon: mark only, navy on white (design.md §2.2.1). -->
+  <rect width="128" height="128" rx="24" fill="#FFFFFF"/>
+  <mask id="aeterna-favicon-weave" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+    <rect width="128" height="128" fill="#fff"/>
+    <path d="M64 72C50 46 14 48 14 72s36 26 50 0c14-26 50-24 50 0s-36 26-50 0Z"
+          stroke="#000" stroke-width="15" fill="none"/>
+  </mask>
+  <g transform="translate(64 64) scale(0.84) translate(-64 -64)">
+    <g mask="url(#aeterna-favicon-weave)" fill="#16375A">
+      <path d="M64 10 118 114 96 114 64 52 32 114 10 114Z"/>
+      <rect x="26" y="86" width="76" height="12" rx="2"/>
+    </g>
+    <path d="M64 72C50 46 14 48 14 72s36 26 50 0c14-26 50-24 50 0s-36 26-50 0Z"
+          stroke="#2E6F9E" stroke-width="9" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

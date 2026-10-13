@@ -1,0 +1,392 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   Aeterna Apple Glass & Design Engineering System
+   --------------------------------------------------------------------------- */
+
+@theme {
+    --font-sans:
+        "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Inter", sans-serif;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    /* Neutrals */
+    --color-canvas: var(--canvas);
+    --color-surface: var(--surface);
+    --color-surface-muted: var(--surface-muted);
+    --color-border: var(--border);
+    --color-border-strong: var(--border-strong);
+    --color-text: var(--text);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
+
+    /* Apple Brand Colors */
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-accent: var(--accent);
+    --color-accent-hover: var(--accent-hover);
+    --color-accent-soft: var(--accent-soft);
+    --color-accent-contrast: var(--accent-contrast);
+    --color-brand-light: var(--brand-light);
+
+    /* Apple Semantics */
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --color-info: var(--accent);
+    --color-info-soft: var(--accent-soft);
+
+    --shadow-overlay: var(--overlay-shadow);
+
+    /* shadcn / UI compatibility aliases */
+    --color-background: var(--canvas);
+    --color-foreground: var(--text);
+    --color-card: var(--surface);
+    --color-card-foreground: var(--text);
+    --color-popover: var(--surface);
+    --color-popover-foreground: var(--text);
+    --color-primary-foreground: var(--accent-contrast);
+    --color-secondary: var(--surface-muted);
+    --color-secondary-foreground: var(--text);
+    --color-muted: var(--surface-muted);
+    --color-muted-foreground: var(--text-secondary);
+    --color-accent-foreground: var(--accent-contrast);
+    --color-destructive: var(--danger);
+    --color-destructive-foreground: var(--accent-contrast);
+    --color-input: var(--border);
+    --color-ring: var(--accent);
+
+    /* Sidebar Tokens - Pure White Left Bar */
+    --color-sidebar: var(--sidebar-bg);
+    --color-sidebar-foreground: var(--text-secondary);
+    --color-sidebar-primary: var(--primary);
+    --color-sidebar-primary-foreground: var(--accent-contrast);
+    --color-sidebar-accent: var(--sidebar-accent-bg);
+    --color-sidebar-accent-foreground: var(--primary);
+    --color-sidebar-border: var(--sidebar-border-color);
+    --color-sidebar-ring: var(--accent);
+}
+
+/* Light Theme - Fenco Design System */
+:root {
+    --canvas: #eaecf2;
+    --surface: #ffffff;
+    --surface-muted: #f4f5f9;
+    --border: rgba(226, 232, 240, 0.85);
+    --border-strong: #cbd5e1;
+    --text: #1c1e22;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+
+    /* Fenco Blue */
+    --primary: #638fe3;
+    --primary-hover: #4e7fdc;
+    --accent: #638fe3;
+    --accent-hover: #4e7fdc;
+    --accent-soft: rgba(99, 143, 227, 0.12);
+    --accent-contrast: #ffffff;
+    --brand-light: #90b6f7;
+
+    /* Semantic Colors */
+    --success: #34c759;
+    --success-soft: rgba(52, 199, 89, 0.12);
+    --warning: #ff9500;
+    --warning-soft: rgba(255, 149, 0, 0.12);
+    --danger: #ff3b30;
+    --danger-soft: rgba(255, 59, 48, 0.12);
+
+    /* Fenco Dock & Sidebar Tokens */
+    --sidebar-bg: #1c1e22;
+    --sidebar-accent-bg: rgba(255, 255, 255, 0.1);
+    --sidebar-border-color: rgba(255, 255, 255, 0.08);
+
+    --overlay-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
+}
+
+/* Dark Theme - Frosted Obsidian with Glass Effect */
+.dark {
+    --canvas: #090d16;
+    --surface: rgba(15, 23, 42, 0.75);
+    --surface-muted: rgba(30, 41, 59, 0.6);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.15);
+    --text: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --primary: #0a84ff;
+    --primary-hover: #2b95ff;
+    --accent: #0a84ff;
+    --accent-hover: #2b95ff;
+    --accent-soft: rgba(10, 132, 255, 0.15);
+    --accent-contrast: #ffffff;
+    --brand-light: #38bdf8;
+
+    --success: #32d74b;
+    --success-soft: rgba(50, 215, 75, 0.15);
+    --warning: #ffd60a;
+    --warning-soft: rgba(255, 214, 10, 0.15);
+    --danger: #ff453a;
+    --danger-soft: rgba(255, 69, 58, 0.15);
+
+    /* Sidebar in Dark Mode */
+    --sidebar-bg: #0f172a;
+    --sidebar-accent-bg: rgba(10, 132, 255, 0.12);
+    --sidebar-border-color: rgba(255, 255, 255, 0.08);
+
+    --overlay-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+    * {
+        @apply border-border;
+        letter-spacing: 0;
+    }
+
+    html, body {
+        font-family: var(--font-sans);
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    body {
+        @apply text-text antialiased;
+        min-height: 100vh;
+        background-color: var(--canvas);
+        background-image:
+            radial-gradient(at 0% 0%, rgba(224, 242, 254, 0.55) 0px, transparent 55%),
+            radial-gradient(at 100% 0%, rgba(237, 233, 254, 0.5) 0px, transparent 55%),
+            radial-gradient(at 50% 100%, rgba(240, 249, 255, 0.4) 0px, transparent 55%);
+        background-attachment: fixed;
+        font-feature-settings: 'cv11';
+    }
+
+    button, input, optgroup, select, textarea {
+        font-family: var(--font-sans);
+        letter-spacing: 0;
+    }
+
+    .dark body {
+        background-color: var(--canvas);
+        background-image:
+            radial-gradient(at 0% 0%, rgba(30, 41, 59, 0.45) 0px, transparent 55%),
+            radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.8) 0px, transparent 55%);
+    }
+
+    /* Apple-style Smooth Focus Ring */
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .tabular,
+    th,
+    td:has(.tabular),
+    [data-slot='stat-value'] {
+        font-variant-numeric: tabular-nums;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+/* Apple Glass Utilities */
+.apple-glass {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.04), 0 2px 8px -2px rgba(15, 23, 42, 0.02);
+}
+
+.dark .apple-glass {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.4);
+}
+
+.apple-glass-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03), 0 1px 4px -1px rgba(15, 23, 42, 0.02);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.15s ease-out;
+}
+
+.apple-glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.07), 0 2px 8px -1px rgba(15, 23, 42, 0.03);
+    border-color: rgba(255, 255, 255, 1);
+}
+
+.apple-glass-card:active {
+    transform: scale(0.985);
+    transition: transform 0.08s ease-out;
+}
+
+.dark .apple-glass-card {
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+}
+
+.dark .apple-glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.dark .apple-glass-card:active {
+    transform: scale(0.985);
+    transition: transform 0.08s ease-out;
+}
+
+/* ---------------------------------------------------------------------------
+   Design Engineering Tactile Utilities (Emil Kowalski & Apple Standards)
+   --------------------------------------------------------------------------- */
+.tactile-button {
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.15s ease-out,
+                box-shadow 0.15s ease-out,
+                border-color 0.15s ease-out;
+    will-change: transform;
+}
+
+.tactile-button:active:not(:disabled) {
+    transform: scale(0.97);
+    transition-duration: 0.06s;
+}
+
+.interactive-card {
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.18s ease-out;
+    will-change: transform, box-shadow;
+}
+
+.interactive-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+}
+
+.interactive-card:active {
+    transform: scale(0.985) translateY(0);
+    transition-duration: 0.08s;
+}
+
+.apple-sidebar-white {
+    background: #ffffff !important;
+    border-right: 1px solid rgba(226, 232, 240, 0.85) !important;
+    box-shadow: 4px 0 24px 0 rgba(15, 23, 42, 0.02);
+}
+
+.dark .apple-sidebar-white {
+    background: #0f172a !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 4px 0 24px 0 rgba(0, 0, 0, 0.25);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Effet étirement goutte d'eau & Bulle prolongée (Liquid Droplet & Bubble Stretch)
+   --------------------------------------------------------------------------- */
+.droplet-item {
+    transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-radius 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.35s ease,
+                background-color 0.25s ease;
+    will-change: transform, border-radius;
+}
+
+.droplet-circle:hover {
+    transform: scale(0.92, 1.18) translateY(-3px);
+    border-radius: 46% 54% 50% 50% / 58% 58% 42% 42%;
+    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.7), 0 0 16px rgba(255, 255, 255, 0.16);
+}
+
+.droplet-circle:active {
+    transform: scale(0.95, 0.95);
+}
+
+.droplet-pill:hover {
+    transform: scale(1.03, 1.05) translateX(4px);
+    box-shadow: 0 10px 24px -4px rgba(0, 0, 0, 0.6), 0 0 14px rgba(255, 255, 255, 0.12);
+}
+
+.droplet-pill:active {
+    transform: scale(0.98, 0.98);
+}
+
+/* Parfaite superposition & alignement des onglets (Hover fluide sans décalage) */
+.droplet-bubble-stretch {
+    transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: background-color, box-shadow;
+}
+
+.droplet-bubble-stretch:hover {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.08);
+}
+
+.droplet-bubble-circle-stretch {
+    transition: background-color 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform, background-color;
+}
+
+.droplet-bubble-circle-stretch:hover {
+    transform: scale(1.08);
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 20px -3px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.16);
+}
+
+/* Onglet actif : pilule blanche parfaitement alignée et superposée */
+.liquid-active-pill {
+    position: relative;
+    background-color: #ffffff !important;
+    color: #0a0c10 !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.4);
+    z-index: 20;
+}
+

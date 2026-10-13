@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="Aeterna">
+  <!-- Single-colour mark: inherits `color`, so it can be filled white on the navy sidebar tile. -->
+  <mask id="aeterna-weave" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+    <rect width="128" height="128" fill="#fff"/>
+    <path d="M64 72C50 46 14 48 14 72s36 26 50 0c14-26 50-24 50 0s-36 26-50 0Z"
+          stroke="#000" stroke-width="15" fill="none"/>
+  </mask>
+  <g mask="url(#aeterna-weave)" fill="currentColor">
+    <path d="M64 10 118 114 96 114 64 52 32 114 10 114Z"/>
+    <rect x="26" y="86" width="76" height="12" rx="2"/>
+  </g>
+  <path d="M64 72C50 46 14 48 14 72s36 26 50 0c14-26 50-24 50 0s-36 26-50 0Z"
+        stroke="currentColor" stroke-width="9" fill="none" stroke-linecap="round"/>
+</svg>
