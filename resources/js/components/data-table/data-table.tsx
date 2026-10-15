@@ -96,7 +96,9 @@ export function DataTable<T>({
                 {rows.data.length === 0 ? (
                     empty
                 ) : (
-                    <div className="overflow-x-auto">
+                    // relative: absolutely positioned bits inside the table (checkbox inputs) must be clipped
+                    // by this scroller too, or they widen the whole page on phones.
+                    <div className="relative overflow-x-auto">
                         <table className="w-full border-collapse text-left">
                             <thead>
                                 <tr className="bg-white/40 dark:bg-white/[0.02] border-b border-slate-200/60 dark:border-white/10">

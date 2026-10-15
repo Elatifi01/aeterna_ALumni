@@ -11,26 +11,13 @@ import {
     index as notificationsIndex,
     readAll,
 } from '@/routes/portal/notifications';
-import type { Paginated } from '@/types';
-
-type NotificationKind = 'campaign' | 'event' | 'registration' | 'other';
-
-type PortalNotification = {
-    id: string;
-    kind: NotificationKind;
-    title: string;
-    body: string;
-    read: boolean;
-    created_at: string | null;
-    event_id: number | null;
-    campaign_id: number | null;
-};
+import type { Paginated, PortalNotification } from '@/types';
 
 type Props = {
     notifications: Paginated<PortalNotification>;
 };
 
-const icons: Record<NotificationKind, LucideIcon> = {
+const icons: Record<PortalNotification['kind'], LucideIcon> = {
     campaign: Mail,
     event: CalendarDays,
     registration: CalendarCheck,

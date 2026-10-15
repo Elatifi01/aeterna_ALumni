@@ -88,6 +88,22 @@ class Plan extends Model
     }
 
     /**
+     * The free plan is not sold: it is the demo trial the Super Administrator grants for a set number of days.
+     */
+    public function isFree(): bool
+    {
+        return (float) $this->price_monthly <= 0 && (float) $this->price_yearly <= 0;
+    }
+
+    /**
+     * Whether a visitor can buy this plan from the landing page: offered to everyone, switched on, and not the free demo trial.
+     */
+    public function isSelfServe(): bool
+    {
+        return ! $this->is_custom && $this->is_active && ! $this->isFree();
+    }
+
+    /**
      * Price for a billing cycle, as stored on the subscription.
      */
     public function priceFor(string $billingCycle): string

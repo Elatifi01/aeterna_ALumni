@@ -16,7 +16,7 @@ class RoleProvisioner
     public const DEFAULT_SLUGS = ['org-admin', 'staff', 'alumni'];
 
     /**
-     * Create the organization's own roles, copying each template's name, description and permissions.
+     * Create the organization's own roles, copying each platform role's name, description and permissions: the defaults, plus any the Super Administrator added.
      *
      * @return array<string, Role> keyed by slug
      */
@@ -25,7 +25,14 @@ class RoleProvisioner
         return DB::transaction(function () use ($organization) {
             $roles = [];
 
-            foreach (self::DEFAULT_SLUGS as $slug) {
+            $slugs = Role::withoutGlobalScopes()
+                ->whereNull('organization_id')
+                ->where('slug', '!=', Role::PLATFORM_SLUG)
+                ->pluck('slug')
+                ->merge(self::DEFAULT_SLUGS)
+                ->unique();
+
+            foreach ($slugs as $slug) {
                 $roles[$slug] = $this->copyTemplate($organization, $slug);
             }
 

@@ -26,6 +26,7 @@ type OrganizationRow = {
     alumni_count: number;
     plan: string | null;
     ends_at: string | null;
+    trial: { ends_at: string; ended: boolean; days_left: number } | null;
 };
 
 type Props = {
@@ -77,8 +78,21 @@ export default function OrganizationsIndex({ organizations, filters }: Props) {
             key: 'plan',
             header: 'Plan',
             cell: (row) =>
-                row.plan ?? (
-                    <span className="text-text-muted">Aucun abonnement</span>
+                row.trial ? (
+                    row.trial.ended ? (
+                        <StatusBadge tone="danger" label="Essai terminé" />
+                    ) : (
+                        <StatusBadge
+                            tone="info"
+                            label={`Essai · ${row.trial.days_left} j`}
+                        />
+                    )
+                ) : (
+                    (row.plan ?? (
+                        <span className="text-text-muted">
+                            Aucun abonnement
+                        </span>
+                    ))
                 ),
         },
         {

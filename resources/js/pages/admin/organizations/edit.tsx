@@ -19,10 +19,25 @@ type Props = {
         address: string | null;
         is_active: boolean;
         logo_url: string | null;
+        trial: { ends_at: string; ended: boolean; days_left: number } | null;
     };
+    maxTrialDays: number;
 };
 
-export default function OrganizationEdit({ organization }: Props) {
+function formatDay(value: string): string {
+    return new Date(`${value}T00:00:00`).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    });
+}
+
+export default function OrganizationEdit({
+    organization,
+    maxTrialDays,
+}: Props) {
+    const trial = organization.trial;
+
     return (
         <>
             <Head title={`Modifier ${organization.name}`} />
@@ -60,6 +75,76 @@ export default function OrganizationEdit({ organization }: Props) {
                         )}
                     </Form>
                 </div>
+
+                {trial && (
+                    <section className="border-border bg-surface max-w-[640px] rounded-lg border p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h2 className="text-text text-base font-semibold">
+                                    Essai de démo
+                                </h2>
+                                <p className="text-text-secondary mt-1 text-sm">
+                                    {trial.ended
+                                        ? `Terminé le ${formatDay(trial.ends_at)} : l espace de l organisation est bloqué.`
+                                        : `Jusqu au ${formatDay(trial.ends_at)} inclus — ${trial.days_left} jour${trial.days_left > 1 ? 's' : ''} restant${trial.days_left > 1 ? 's' : ''}.`}
+                                </p>
+                            </div>
+                            {trial.ended ? (
+                                <StatusBadge tone="danger" label="Bloqué" />
+                            ) : (
+                                <StatusBadge tone="info" label="En essai" />
+                            )}
+                        </div>
+                        <Form
+                            {...OrganizationController.extendTrial.form(
+                                organization.id,
+                            )}
+                            options={{ preserveScroll: true }}
+                            className="mt-4 flex flex-wrap items-end gap-3"
+                        >
+                            {({ processing, errors }) => (
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="days">
+                                            {trial.ended
+                                                ? 'Rouvrir pour (jours)'
+                                                : 'Prolonger de (jours)'}
+                                        </Label>
+                                        <Input
+                                            id="days"
+                                            name="days"
+                                            type="number"
+                                            min={1}
+                                            max={maxTrialDays}
+                                            defaultValue={7}
+                                            required
+                                            className="h-10 w-32"
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        className="h-10"
+                                        disabled={processing}
+                                    >
+                                        {processing && <Spinner />}
+                                        {trial.ended
+                                            ? 'Rouvrir l essai'
+                                            : 'Prolonger l essai'}
+                                    </Button>
+                                    <InputError
+                                        className="w-full"
+                                        message={errors.days}
+                                    />
+                                </>
+                            )}
+                        </Form>
+                        <p className="text-text-muted mt-3 text-xs">
+                            Pour passer à une formule payante, attribuez un plan
+                            depuis Abonnements.
+                        </p>
+                    </section>
+                )}
 
                 <Form
                     {...OrganizationController.update.form(organization.id)}

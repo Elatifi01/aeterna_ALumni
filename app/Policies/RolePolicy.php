@@ -23,7 +23,7 @@ class RolePolicy
      */
     public function view(User $user, Role $role): bool
     {
-        return $user->hasPermission('roles.view') && $this->visibleTo($user, $role);
+        return $user->hasPermission('roles.view') && $this->ownedBy($user, $role);
     }
 
     /**
@@ -69,16 +69,7 @@ class RolePolicy
     }
 
     /**
-     * System roles are visible in every organization.
-     */
-    private function visibleTo(User $user, Role $role): bool
-    {
-        return $role->organization_id === null
-            || $role->organization_id === $user->organization_id;
-    }
-
-    /**
-     * Only a role the organization itself created may be written to.
+     * An organization sees and manages only its own roles; the platform roles belong to the Super Administrator.
      */
     private function ownedBy(User $user, Role $role): bool
     {

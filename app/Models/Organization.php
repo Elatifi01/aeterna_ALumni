@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon|null $deleted_at
  * @property-read string|null $logo_url
  * @property-read Subscription|null $activeSubscription
+ * @property-read Subscription|null $latestSubscription
  * @property-read int|null $alumni_count
  */
 class Organization extends Model
@@ -143,5 +144,35 @@ class Organization extends Model
                 ['id' => 'max'],
                 fn (Builder $query) => $query->where('status', 'active'),
             );
+    }
+
+    /**
+     * The most recent subscription, whatever its status.
+     *
+     * @return HasOne<Subscription, $this>
+     */
+    public function latestSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)->latestOfMany('id');
+    }
+
+    /**
+     * The free demo trial this organization is on, or last was on, if its latest subscription is one.
+     */
+    public function trial(): ?Subscription
+    {
+        $subscription = $this->latestSubscription;
+
+        return $subscription !== null && $subscription->plan?->isFree() === true ? $subscription : null;
+    }
+
+    /**
+     * Whether the organization's demo trial is over: its space stays closed until the trial is extended or a paid plan is assigned.
+     */
+    public function trialHasEnded(): bool
+    {
+        $trial = $this->trial();
+
+        return $trial !== null && ! $trial->isActive();
     }
 }

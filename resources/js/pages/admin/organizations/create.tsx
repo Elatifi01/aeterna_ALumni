@@ -16,6 +16,7 @@ type PlanOption = {
     name: string;
     price_monthly: string;
     price_yearly: string;
+    is_free: boolean;
 };
 
 type Props = { plans: PlanOption[] };
@@ -131,13 +132,41 @@ export default function OrganizationCreate({ plans }: Props) {
                                                 key={plan.id}
                                                 value={plan.id}
                                             >
-                                                {plan.name}
+                                                {plan.is_free
+                                                    ? `${plan.name} (essai gratuit)`
+                                                    : plan.name}
                                             </option>
                                         ))}
                                     </select>
                                     <InputError message={errors.plan_id} />
                                 </div>
-                                {planId !== '' && (
+                                {chosen?.is_free && (
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="trial_days">
+                                            Durée de l essai (jours)
+                                        </Label>
+                                        <Input
+                                            id="trial_days"
+                                            name="trial_days"
+                                            type="number"
+                                            min={1}
+                                            max={90}
+                                            defaultValue={7}
+                                            required
+                                            className="h-12 max-w-40"
+                                        />
+                                        <p className="text-text-muted text-xs">
+                                            À la fin de l essai, l espace de l
+                                            organisation est bloqué jusqu à ce
+                                            que vous le prolongiez ou lui
+                                            attribuiez un plan payant.
+                                        </p>
+                                        <InputError
+                                            message={errors.trial_days}
+                                        />
+                                    </div>
+                                )}
+                                {chosen !== undefined && !chosen.is_free && (
                                     <div className="grid gap-2">
                                         <Label htmlFor="billing_cycle">
                                             Cycle de facturation

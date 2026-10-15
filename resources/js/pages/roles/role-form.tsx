@@ -1,5 +1,5 @@
 import { Form, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,6 +26,8 @@ type Props = {
     catalogue: CatalogueEntry[];
     submitLabel: string;
     forAlumni?: boolean;
+    notice?: string;
+    cancelHref?: ComponentProps<typeof Link>['href'];
 };
 
 const moduleLabels: Record<string, string> = {
@@ -39,6 +41,7 @@ const moduleLabels: Record<string, string> = {
     organization: 'Organisation',
     subscription: 'Abonnement',
     portal: 'Portail alumni',
+    platform: 'Espace plateforme',
 };
 
 export function RoleForm({
@@ -47,6 +50,8 @@ export function RoleForm({
     catalogue,
     submitLabel,
     forAlumni = false,
+    notice,
+    cancelHref = index(),
 }: Props) {
     const [selected, setSelected] = useState<string[]>(role?.permissions ?? []);
 
@@ -125,13 +130,19 @@ export function RoleForm({
                         </div>
                     </section>
                     <section className="space-y-4">
-                        {forAlumni && (
+                        {notice ? (
                             <p className="bg-accent-soft text-text-secondary rounded-lg px-4 py-3 text-sm">
-                                Ce role est celui de tous les alumni de votre
-                                etablissement. Ce que vous cochez ici est ce que
-                                leur portail leur propose ; ce que vous decochez
-                                en disparait pour tous.
+                                {notice}
                             </p>
+                        ) : (
+                            forAlumni && (
+                                <p className="bg-accent-soft text-text-secondary rounded-lg px-4 py-3 text-sm">
+                                    Ce role est celui de tous les alumni de
+                                    votre etablissement. Ce que vous cochez ici
+                                    est ce que leur portail leur propose ; ce
+                                    que vous decochez en disparait pour tous.
+                                </p>
+                            )
                         )}
 
                         <div className="flex items-baseline justify-between">
@@ -204,7 +215,7 @@ export function RoleForm({
                     </section>
                     <div className="border-border flex items-center justify-end gap-3 border-t pt-6">
                         <Button variant="ghost" asChild>
-                            <Link href={index()}>Annuler</Link>
+                            <Link href={cancelHref}>Annuler</Link>
                         </Button>
                         <Button
                             type="submit"

@@ -10,7 +10,7 @@ export default function PortalLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-[#eaecf2] p-3 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-5 lg:gap-6 font-sans antialiased text-[#202224]">
+        <div className="min-h-screen bg-[#eaecf2] p-3 sm:p-5 lg:p-6 flex flex-col lg:flex-row gap-5 lg:gap-6 font-sans antialiased text-[#202224]">
             {/* Left Fenco Dock */}
             <PortalSidebar />
 

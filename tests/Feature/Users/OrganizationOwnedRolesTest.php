@@ -255,8 +255,9 @@ class OrganizationOwnedRolesTest extends TestCase
     public function test_a_new_organization_is_provisioned_with_its_own_roles()
     {
         $superAdminRole = Role::factory()->create([
-            'organization_id' => null, 'slug' => 'super-admin', 'is_system' => true,
+            'organization_id' => null, 'slug' => 'super-admin', 'is_system' => true, 'guard' => 'platform',
         ]);
+        $superAdminRole->permissions()->sync(Permission::whereIn('slug', Permissions::platformSlugs())->pluck('id'));
         $superAdmin = User::factory()->create([
             'organization_id' => null, 'role_id' => $superAdminRole->id,
         ]);

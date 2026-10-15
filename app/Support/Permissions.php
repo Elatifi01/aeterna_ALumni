@@ -69,6 +69,19 @@ final class Permissions
         ],
     ];
 
+    /**
+     * What the Super Administrator role opens in the platform space. The dashboard and the roles screen stay open regardless, so the role can always be repaired.
+     *
+     * @var array<string, array<string, string>> module => [slug => label]
+     */
+    public const PLATFORM_CATALOGUE = [
+        'platform' => [
+            'platform.organizations' => 'Gerer les organisations',
+            'platform.plans' => 'Gerer les plans et tarifs',
+            'platform.subscriptions' => 'Gerer les abonnements',
+        ],
+    ];
+
     public const ALUMNI_ROLE_SLUG = 'alumni';
 
     /**
@@ -92,13 +105,49 @@ final class Permissions
     }
 
     /**
+     * Every PLATFORM permission slug, flattened.
+     *
+     * @return list<string>
+     */
+    public static function platformSlugs(): array
+    {
+        return array_merge(...array_map('array_keys', array_values(self::PLATFORM_CATALOGUE)));
+    }
+
+    /**
      * The catalogue a role of this guard is built from.
      *
      * @return array<string, array<string, string>>
      */
     public static function catalogueFor(string $guard): array
     {
-        return $guard === 'alumni' ? self::PORTAL_CATALOGUE : self::CATALOGUE;
+        return match ($guard) {
+            'alumni' => self::PORTAL_CATALOGUE,
+            'platform' => self::PLATFORM_CATALOGUE,
+            default => self::CATALOGUE,
+        };
+    }
+
+    /**
+     * The catalogue of this guard grouped by module, as the role form's checkbox grid reads it.
+     *
+     * @return list<array{module: string, permissions: list<array{slug: string, label: string}>}>
+     */
+    public static function groupedFor(string $guard): array
+    {
+        $groups = [];
+
+        foreach (self::catalogueFor($guard) as $module => $permissions) {
+            $rows = [];
+
+            foreach ($permissions as $slug => $label) {
+                $rows[] = ['slug' => $slug, 'label' => $label];
+            }
+
+            $groups[] = ['module' => $module, 'permissions' => $rows];
+        }
+
+        return $groups;
     }
 
     /**
@@ -108,7 +157,11 @@ final class Permissions
      */
     public static function slugsFor(string $guard): array
     {
-        return $guard === 'alumni' ? self::portalSlugs() : self::slugs();
+        return match ($guard) {
+            'alumni' => self::portalSlugs(),
+            'platform' => self::platformSlugs(),
+            default => self::slugs(),
+        };
     }
 
     /**
@@ -133,7 +186,7 @@ final class Permissions
     {
         $rows = [];
 
-        foreach ([...self::CATALOGUE, ...self::PORTAL_CATALOGUE] as $module => $permissions) {
+        foreach ([...self::CATALOGUE, ...self::PORTAL_CATALOGUE, ...self::PLATFORM_CATALOGUE] as $module => $permissions) {
             foreach ($permissions as $slug => $label) {
                 $rows[] = ['name' => $label, 'slug' => $slug, 'module' => $module];
             }

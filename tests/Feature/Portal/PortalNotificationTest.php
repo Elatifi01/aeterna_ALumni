@@ -350,4 +350,58 @@ class PortalNotificationTest extends TestCase
         $this->assertNotNull($first->refresh()->read_at);
         $this->assertSame(1, $this->alumni->unreadNotifications()->count());
     }
+
+    /**
+     * The header bell receives this alumni's latest notifications, newest first.
+     */
+    public function test_the_header_bell_receives_the_latest_notifications()
+    {
+        $colleague = $this->accountFor($this->organization, 'collegue@example.test');
+
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'status' => 'published',
+            'starts_at' => now()->addMonth(),
+        ]);
+
+        foreach (range(1, 7) as $ignored) {
+            $this->alumni->notify(new EventPublished($event));
+        }
+        $colleague->notify(new RegistrationConfirmed($event));
+
+        $this->actingAs($this->alumni, 'alumni')
+            ->get(route('portal.dashboard'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('auth.alumni.recent_notifications', 5)
+                ->where('auth.alumni.recent_notifications.0.kind', 'event')
+                ->where('auth.alumni.recent_notifications.0.read', false)
+                ->where('auth.alumni.recent_notifications.0.event_id', $event->id)
+            );
+    }
+
+    /**
+     * Without the notifications permission, the bell receives nothing.
+     */
+    public function test_the_header_bell_is_empty_without_the_permission()
+    {
+        $event = Event::factory()->create([
+            'organization_id' => $this->organization->id,
+            'status' => 'published',
+            'starts_at' => now()->addMonth(),
+        ]);
+        $this->alumni->notify(new EventPublished($event));
+
+        $role = Role::factory()->create([
+            'organization_id' => $this->organization->id, 'name' => 'Alumni',
+            'slug' => Permissions::ALUMNI_ROLE_SLUG, 'guard' => 'alumni',
+        ]);
+        $role->permissions()->sync(Permission::where('slug', 'portal.events.view')->pluck('id'));
+        $this->alumni->refresh();
+
+        $this->actingAs($this->alumni, 'alumni')
+            ->get(route('portal.dashboard'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('auth.alumni.recent_notifications', 0)
+            );
+    }
 }

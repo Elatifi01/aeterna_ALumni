@@ -30,14 +30,12 @@ class RoleController extends Controller
 
         $roles = Role::query()
             ->withCount(['users', 'permissions'])
-            ->orderByDesc('is_system')
             ->orderBy('name')
             ->get()
             ->map(fn (Role $role) => [
                 'id' => $role->id,
                 'name' => $role->name,
                 'description' => $role->description,
-                'is_system' => (bool) $role->is_system,
                 'guard' => $role->guard,
                 'users_count' => $role->isAlumniRole() ? $accounts : $role->users_count,
                 'permissions_count' => $role->permissions_count,
@@ -56,7 +54,7 @@ class RoleController extends Controller
         $this->authorize('create', Role::class);
 
         return Inertia::render('roles/create', [
-            'catalogue' => $this->catalogue('web'),
+            'catalogue' => Permissions::groupedFor('web'),
         ]);
     }
 
@@ -98,7 +96,7 @@ class RoleController extends Controller
                 'guard' => $role->guard,
                 'permissions' => $role->permissions()->pluck('slug'),
             ],
-            'catalogue' => $this->catalogue($role->guard),
+            'catalogue' => Permissions::groupedFor($role->guard),
         ]);
     }
 
@@ -138,28 +136,6 @@ class RoleController extends Controller
         $role->delete();
 
         return to_route('roles.index')->with('success', 'Role supprime.');
-    }
-
-    /**
-     * The permission catalogue grouped by module, for the checkbox grid (docs/project.md §5.4).
-     *
-     * @return array<int, array{module: string, permissions: array<int, array{slug: string, label: string}>}>
-     */
-    private function catalogue(string $guard): array
-    {
-        return collect(Permissions::catalogueFor($guard))
-            ->map(fn (array $permissions, string $module) => [
-                'module' => $module,
-                'permissions' => collect($permissions)
-                    ->map(fn (string $label, string $slug) => [
-                        'slug' => $slug,
-                        'label' => $label,
-                    ])
-                    ->values()
-                    ->all(),
-            ])
-            ->values()
-            ->all();
     }
 
     /**

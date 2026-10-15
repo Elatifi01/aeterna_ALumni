@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureAlumniHasPermission;
 use App\Http\Middleware\EnsureAlumniPasswordChanged;
 use App\Http\Middleware\EnsureUserHasOrganization;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureSuperAdminHasPermission;
 use App\Http\Middleware\EnsureUserIsSuperAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'alumni' => EnsureAlumniCanUsePortal::class,
             'alumni-password' => EnsureAlumniPasswordChanged::class,
             'portal-can' => EnsureAlumniHasPermission::class,
+            'platform-can' => EnsureSuperAdminHasPermission::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request): string {

@@ -18,8 +18,8 @@ class PlanSeeder extends Seeder
         $plans = [
             [
                 'slug' => 'free',
-                'name' => 'Free',
-                'description' => 'Pour demarrer : un volume limite d alumni, d evenements et de campagnes.',
+                'name' => 'Démo',
+                'description' => 'Pour découvrir Aeterna après votre démo : un volume limité d’alumni, d’événements et de campagnes.',
                 'price_monthly' => 0,
                 'price_yearly' => 0,
                 'max_alumni' => 100,

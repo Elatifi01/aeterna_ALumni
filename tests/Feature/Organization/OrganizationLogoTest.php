@@ -263,8 +263,9 @@ class OrganizationLogoTest extends TestCase
             'slug' => 'org-admin', 'is_system' => true,
         ]);
         $superAdminRole = Role::factory()->create([
-            'organization_id' => null, 'slug' => 'super-admin', 'is_system' => true,
+            'organization_id' => null, 'slug' => 'super-admin', 'is_system' => true, 'guard' => 'platform',
         ]);
+        $superAdminRole->permissions()->sync(Permission::whereIn('slug', Permissions::platformSlugs())->pluck('id'));
         $superAdmin = User::factory()->create([
             'organization_id' => null, 'role_id' => $superAdminRole->id,
         ]);

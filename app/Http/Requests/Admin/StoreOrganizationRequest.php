@@ -12,6 +12,8 @@ use Illuminate\Validation\Rule;
  */
 class StoreOrganizationRequest extends FormRequest
 {
+    public const MAX_TRIAL_DAYS = 90;
+
     /**
      * Whether the user is authorised to make this request.
      */
@@ -46,7 +48,15 @@ class StoreOrganizationRequest extends FormRequest
             'plan_id' => ['nullable', Rule::exists('plans', 'id')
                 ->where('is_active', 1)
                 ->where('is_custom', 0)],
-            'billing_cycle' => ['required_with:plan_id', 'nullable', Rule::in(['monthly', 'yearly'])],
+            // A paid plan is billed on a cycle; the free plan is a demo trial that lasts a set number of days.
+            'billing_cycle' => [
+                Rule::requiredIf(fn () => $this->plan()?->isFree() === false),
+                'nullable', Rule::in(['monthly', 'yearly']),
+            ],
+            'trial_days' => [
+                Rule::requiredIf(fn () => $this->plan()?->isFree() === true),
+                'nullable', 'integer', 'min:1', 'max:'.self::MAX_TRIAL_DAYS,
+            ],
         ];
     }
 
@@ -59,7 +69,9 @@ class StoreOrganizationRequest extends FormRequest
     {
         return [
             'admin_email.unique' => 'Un compte utilise deja cette adresse e-mail.',
-            'billing_cycle.required_with' => 'Choisissez un cycle de facturation pour ce plan.',
+            'billing_cycle.required' => 'Choisissez un cycle de facturation pour ce plan.',
+            'trial_days.required' => 'Indiquez combien de jours dure l essai.',
+            'trial_days.max' => 'Un essai dure au plus '.self::MAX_TRIAL_DAYS.' jours.',
         ];
     }
 

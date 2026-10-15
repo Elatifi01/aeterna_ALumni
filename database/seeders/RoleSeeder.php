@@ -8,7 +8,7 @@ use App\Support\Permissions;
 use Illuminate\Database\Seeder;
 
 /**
- * docs/database-schema.md §9.2 — the system roles: three for staff, one for the portal.
+ * docs/database-schema.md §9.2 — the system roles: the platform's, two for staff, one for the portal.
  */
 class RoleSeeder extends Seeder
 {
@@ -24,7 +24,8 @@ class RoleSeeder extends Seeder
                 'slug' => Role::PLATFORM_SLUG,
                 'name' => 'Super administrateur',
                 'description' => 'Acces global a la plateforme.',
-                'permissions' => Permissions::slugs(),
+                'guard' => 'platform',
+                'permissions' => Permissions::platformSlugs(),
             ],
             [
                 'slug' => 'org-admin',

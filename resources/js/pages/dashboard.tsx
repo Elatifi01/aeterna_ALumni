@@ -119,7 +119,7 @@ export default function Dashboard({
         <>
             <Head title={`Tableau de bord — ${orgName}`} />
 
-            <div className="min-h-screen bg-[#eaecf2] dark:bg-[#0b0f19] p-3 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-5 lg:gap-6 font-sans antialiased text-[#15171C] dark:text-slate-100">
+            <div className="min-h-screen bg-[#eaecf2] dark:bg-[#0b0f19] p-3 sm:p-5 lg:p-6 flex flex-col lg:flex-row gap-5 lg:gap-6 font-sans antialiased text-[#15171C] dark:text-slate-100">
                 {/* Navigation Dock */}
                 <AppSidebar onOpenPayment={() => setIsPaymentModalOpen(true)} />
 

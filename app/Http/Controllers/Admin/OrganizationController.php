@@ -7,14 +7,13 @@ use App\Http\Requests\Admin\StoreOrganizationRequest;
 use App\Http\Requests\Admin\UpdateOrganizationRequest;
 use App\Models\Organization;
 use App\Models\Plan;
-use App\Models\User;
 use App\Services\OrganizationLogoService;
-use App\Services\RoleProvisioner;
+use App\Services\OrganizationRegistrar;
 use App\Services\SubscriptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -29,7 +28,7 @@ class OrganizationController extends Controller
      */
     public function __construct(
         private readonly SubscriptionService $subscriptions,
-        private readonly RoleProvisioner $roles,
+        private readonly OrganizationRegistrar $registrar,
         private readonly OrganizationLogoService $logos,
     ) {}
 
@@ -52,7 +51,7 @@ class OrganizationController extends Controller
 
         $organizations = Organization::query()
             ->withCount('alumni')
-            ->with(['activeSubscription.plan:id,name'])
+            ->with(['activeSubscription.plan:id,name', 'latestSubscription.plan'])
             ->when($validated['search'] ?? null, function ($query, string $term) {
                 $like = '%'.addcslashes($term, '%_').'%';
 
@@ -72,6 +71,7 @@ class OrganizationController extends Controller
                 'alumni_count' => $organization->alumni_count,
                 'plan' => $organization->activeSubscription?->plan?->name,
                 'ends_at' => $organization->activeSubscription?->ends_at?->toDateString(),
+                'trial' => $this->presentTrial($organization),
             ]);
 
         return Inertia::render('admin/organizations/index', [
@@ -104,28 +104,24 @@ class OrganizationController extends Controller
         $validated = $request->validated();
 
         $organization = DB::transaction(function () use ($request, $validated) {
-            $organization = Organization::create([
-                'name' => $validated['name'],
-                'slug' => $this->uniqueSlug($validated['name']),
-                'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? null,
-                'address' => $validated['address'] ?? null,
-                'is_active' => true,
-            ]);
+            ['organization' => $organization] = $this->registrar->register(
+                [
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'] ?? null,
+                    'address' => $validated['address'] ?? null,
+                ],
+                [
+                    'name' => $validated['admin_name'],
+                    'email' => $validated['admin_email'],
+                    'password' => $validated['admin_password'],
+                ],
+            );
 
-            $roles = $this->roles->provision($organization);
-
-            User::withoutGlobalScopes()->create([
-                'organization_id' => $organization->id,
-                'role_id' => $roles['org-admin']->id,
-                'name' => $validated['admin_name'],
-                'email' => $validated['admin_email'],
-                'password' => $validated['admin_password'],
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]);
-
-            if (($plan = $request->plan()) !== null) {
+            if (($plan = $request->plan()) !== null && $plan->isFree()) {
+                $start = Carbon::today();
+                $this->subscriptions->assign($organization, $plan, 'monthly', $start, $start->copy()->addDays((int) $validated['trial_days']));
+            } elseif ($plan !== null) {
                 $this->subscriptions->assign($organization, $plan, $validated['billing_cycle']);
             }
 
@@ -154,7 +150,9 @@ class OrganizationController extends Controller
                 'address' => $organization->address,
                 'is_active' => $organization->is_active,
                 'logo_url' => $organization->logo_url,
+                'trial' => $this->presentTrial($organization),
             ],
+            'maxTrialDays' => StoreOrganizationRequest::MAX_TRIAL_DAYS,
         ]);
     }
 
@@ -201,9 +199,58 @@ class OrganizationController extends Controller
     }
 
     /**
+     * Extend the organization's free demo trial by a number of days, reopening its space if the trial had ended.
+     */
+    public function extendTrial(Request $request, Organization $organization): RedirectResponse
+    {
+        $validated = $request->validate([
+            'days' => ['required', 'integer', 'min:1', 'max:'.StoreOrganizationRequest::MAX_TRIAL_DAYS],
+        ]);
+
+        $trial = $organization->trial();
+
+        abort_if($trial === null, 404);
+
+        // A running trial grows from its end date; an ended one restarts from today.
+        $from = $trial->isActive()
+            ? Carbon::parse($trial->ends_at->toDateString())
+            : now()->startOfDay();
+
+        $trial->update([
+            'status' => 'active',
+            'ends_at' => $from->addDays((int) $validated['days']),
+            'canceled_at' => null,
+        ]);
+
+        return back()->with('success', "Essai prolonge jusqu au {$trial->ends_at->format('d/m/Y')}.");
+    }
+
+    /**
+     * The organization's demo trial as the admin screens show it, or null when it is not on one.
+     *
+     * @return array{ends_at: string, ended: bool, days_left: int}|null
+     */
+    private function presentTrial(Organization $organization): ?array
+    {
+        $trial = $organization->trial();
+
+        if ($trial === null) {
+            return null;
+        }
+
+        $endsAt = Carbon::parse($trial->ends_at->toDateString());
+
+        return [
+            'ends_at' => $endsAt->toDateString(),
+            'ended' => ! $trial->isActive(),
+            'days_left' => max(0, (int) now()->startOfDay()->diffInDays($endsAt, false)),
+        ];
+    }
+
+    /**
      * The plans an organization can be subscribed to, for the form.
      *
-     * @return array<int, array{id: int, name: string, price_monthly: string, price_yearly: string}>
+     * @return array<int, array{id: int, name: string, price_monthly: string, price_yearly: string, is_free: bool}>
      */
     private function activePlans(): array
     {
@@ -217,24 +264,9 @@ class OrganizationController extends Controller
                 'name' => $plan->name,
                 'price_monthly' => $plan->price_monthly,
                 'price_yearly' => $plan->price_yearly,
+                'is_free' => $plan->isFree(),
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * A slug derived from the name that no other organization uses.
-     */
-    private function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name) ?: 'organisation';
-        $slug = $base;
-        $suffix = 2;
-
-        while (Organization::withTrashed()->where('slug', $slug)->exists()) {
-            $slug = $base.'-'.$suffix++;
-        }
-
-        return $slug;
     }
 }

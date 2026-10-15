@@ -185,20 +185,19 @@ class UserController extends Controller
     }
 
     /**
-     * Roles this organization may assign: its own, plus the system roles, minus super-admin which is never handed out from inside a tenant.
+     * Roles this organization may assign to its staff: its own, never the platform roles.
      *
-     * @return array<int, array{id: int, name: string, is_system: bool}>
+     * @return array<int, array{id: int, name: string}>
      */
     private function assignableRoles(): array
     {
         return Role::query()
-            ->orderByDesc('is_system')
+            ->where('guard', 'web')
             ->orderBy('name')
-            ->get(['id', 'name', 'is_system'])
+            ->get(['id', 'name'])
             ->map(fn (Role $role) => [
                 'id' => $role->id,
                 'name' => $role->name,
-                'is_system' => (bool) $role->is_system,
             ])
             ->values()
             ->all();

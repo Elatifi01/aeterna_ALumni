@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Bell,
     Briefcase,
     CalendarDays,
     Home,
@@ -12,6 +10,7 @@ import {
     User as UserIcon,
 } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { SidebarFrame } from '@/components/sidebar-frame';
 import {
     Tooltip,
     TooltipContent,
@@ -25,7 +24,6 @@ import {
     index as jobsIndex,
 } from '@/routes/portal/jobs';
 import { index as messagesIndex } from '@/routes/portal/messages';
-import { index as notificationsIndex } from '@/routes/portal/notifications';
 import { profile as profileSettings } from '@/routes/portal/settings';
 import type { SharedData } from '@/types';
 
@@ -33,46 +31,6 @@ export function PortalSidebar() {
     const { url, props } = usePage<SharedData>();
     const { auth } = props;
     const alumni = auth?.alumni ?? null;
-
-    // Dynamic scroll stretch physics
-    const [scrollStretch, setScrollStretch] = useState<number>(1);
-    const [stretchOrigin, setStretchOrigin] = useState<'top' | 'bottom'>('top');
-
-    useEffect(() => {
-        let lastScrollY = window.scrollY;
-        let ticking = false;
-        let resetTimer: NodeJS.Timeout | null = null;
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            const delta = currentScrollY - lastScrollY;
-            lastScrollY = currentScrollY;
-
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    const velocity = Math.min(Math.abs(delta), 120);
-                    if (velocity > 3) {
-                        const stretchFactor = 1 + (velocity / 120) * 0.045;
-                        setStretchOrigin(delta > 0 ? 'top' : 'bottom');
-                        setScrollStretch(stretchFactor);
-
-                        if (resetTimer) clearTimeout(resetTimer);
-                        resetTimer = setTimeout(() => {
-                            setScrollStretch(1);
-                        }, 180);
-                    }
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-            if (resetTimer) clearTimeout(resetTimer);
-        };
-    }, []);
 
     const isItemActive = (href: unknown) => {
         try {
@@ -89,7 +47,6 @@ export function PortalSidebar() {
         { title: 'Assistant IA', href: assistantIndex(), icon: Sparkles },
         { title: 'Événements', href: eventsIndex(), icon: CalendarDays },
         { title: 'Messages', href: messagesIndex(), icon: Mail, badge: alumni?.unread_messages ?? 0 },
-        { title: 'Notifications', href: notificationsIndex(), icon: Bell, badge: alumni?.unread_notifications ?? 0 },
         { title: 'Offres d’emploi', href: jobsIndex(), icon: Briefcase },
         { title: 'Candidatures', href: jobApplications(), icon: Star },
     ];
@@ -104,17 +61,7 @@ export function PortalSidebar() {
         : 'AL';
 
     return (
-        <aside
-            style={{
-                transform: `scaleY(${scrollStretch})`,
-                transformOrigin: stretchOrigin === 'top' ? 'top center' : 'bottom center',
-                transition:
-                    scrollStretch === 1
-                        ? 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                        : 'transform 0.08s ease-out',
-            }}
-            className="w-full md:w-[230px] lg:w-[245px] shrink-0 sticky top-4 self-start h-[calc(100vh-2rem)] z-40 flex flex-col justify-between gap-3 select-none font-sans"
-        >
+        <SidebarFrame>
             {/* =========================================================================
                 BULLE 1: Capsule principale (Navigation & Logo) en NOIR OUVERT
                ========================================================================= */}
@@ -271,6 +218,6 @@ export function PortalSidebar() {
                     </Tooltip>
                 </div>
             </div>
-        </aside>
+        </SidebarFrame>
     );
 }

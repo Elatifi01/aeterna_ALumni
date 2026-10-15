@@ -37,8 +37,9 @@ class SuperAdminTest extends TestCase
 
         $superAdminRole = Role::withoutGlobalScopes()->create([
             'organization_id' => null, 'name' => 'Super administrateur',
-            'slug' => 'super-admin', 'is_system' => true,
+            'slug' => 'super-admin', 'is_system' => true, 'guard' => 'platform',
         ]);
+        $superAdminRole->permissions()->sync(Permission::whereIn('slug', Permissions::platformSlugs())->pluck('id'));
         Role::withoutGlobalScopes()->create([
             'organization_id' => null, 'name' => 'Administrateur',
             'slug' => 'org-admin', 'is_system' => true,

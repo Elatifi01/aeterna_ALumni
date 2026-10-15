@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Alumni;
+use App\Support\PortalNotifications;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -26,12 +27,7 @@ class NotificationController extends Controller
             'notifications' => $alumni->notifications()
                 ->latest()
                 ->paginate(20)
-                ->through(fn (DatabaseNotification $notification): array => [
-                    'id' => $notification->id,
-                    'read' => $notification->read_at !== null,
-                    'created_at' => $notification->created_at?->toIso8601String(),
-                    ...$this->payload($notification),
-                ]),
+                ->through(fn (DatabaseNotification $notification): array => PortalNotifications::present($notification)),
         ]);
     }
 
@@ -59,25 +55,6 @@ class NotificationController extends Controller
         $this->alumni($request)->unreadNotifications->markAsRead();
 
         return back()->with('success', 'Toutes vos notifications sont marquees comme lues.');
-    }
-
-    /**
-     * The stored payload, narrowed to what the interface renders.
-     *
-     * @return array<string, mixed>
-     */
-    private function payload(DatabaseNotification $notification): array
-    {
-        /** @var array<string, mixed> $data */
-        $data = $notification->data;
-
-        return [
-            'kind' => is_string($data['type'] ?? null) ? $data['type'] : 'other',
-            'title' => is_string($data['title'] ?? null) ? $data['title'] : '',
-            'body' => is_string($data['body'] ?? null) ? $data['body'] : '',
-            'event_id' => is_int($data['event_id'] ?? null) ? $data['event_id'] : null,
-            'campaign_id' => is_int($data['campaign_id'] ?? null) ? $data['campaign_id'] : null,
-        ];
     }
 
     /**

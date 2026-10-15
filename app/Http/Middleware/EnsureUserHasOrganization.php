@@ -28,6 +28,10 @@ class EnsureUserHasOrganization
 
         abort_unless($user->organization?->is_active === true, 403, __('Cette organisation est desactivee.'));
 
+        if ($user->organization->trialHasEnded()) {
+            return redirect()->route('trial.ended');
+        }
+
         return $next($request);
     }
 }

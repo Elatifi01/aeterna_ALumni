@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\PortalNotifications;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -56,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $alumni->email,
                     'must_change_password' => $alumni->must_change_password,
                     'unread_notifications' => fn (): int => $alumni->unreadNotifications()->count(),
+                    'recent_notifications' => fn (): array => PortalNotifications::recentFor($alumni),
                     'unread_messages' => fn (): int => $alumni->campaigns()
                         ->wherePivot('status', 'sent')
                         ->wherePivotNull('read_at')

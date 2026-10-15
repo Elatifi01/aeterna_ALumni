@@ -77,6 +77,6 @@ class Subscription extends Model
      */
     public function isActive(): bool
     {
-        return $this->status === 'active' && $this->ends_at->endOfDay()->isFuture();
+        return $this->status === 'active' && $this->ends_at->copy()->endOfDay()->isFuture();
     }
 }

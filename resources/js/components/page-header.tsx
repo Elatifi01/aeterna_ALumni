@@ -19,7 +19,10 @@ export function PageHeader({ title, description, action }: Props) {
                     </p>
                 )}
             </div>
-            {action && <div className="shrink-0">{action}</div>}
+            {/* Pages pass their buttons as one flex row: let it wrap on narrow screens */}
+            {action && (
+                <div className="max-w-full sm:shrink-0 *:flex-wrap">{action}</div>
+            )}
         </div>
     );
 }

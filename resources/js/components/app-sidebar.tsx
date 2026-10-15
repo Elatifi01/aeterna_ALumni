@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
@@ -18,6 +17,7 @@ import {
     Wallet,
 } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { SidebarFrame } from '@/components/sidebar-frame';
 import {
     Tooltip,
     TooltipContent,
@@ -28,6 +28,7 @@ import { logout } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as adminOrganizations } from '@/routes/admin/organizations';
 import { index as adminPlans } from '@/routes/admin/plans';
+import { index as adminRoles } from '@/routes/admin/roles';
 import { index as adminSubscriptions } from '@/routes/admin/subscriptions';
 import { index as alumniIndex } from '@/routes/alumni';
 import { index as assistantIndex } from '@/routes/assistant';
@@ -53,52 +54,22 @@ export function AppSidebar({ onOpenPayment }: Props) {
     const organization = auth?.organization;
     const { can } = usePermissions();
 
-    // Dynamic scroll stretch physics
-    const [scrollStretch, setScrollStretch] = useState<number>(1);
-    const [stretchOrigin, setStretchOrigin] = useState<'top' | 'bottom'>('top');
-
-    useEffect(() => {
-        let lastScrollY = window.scrollY;
-        let ticking = false;
-        let resetTimer: NodeJS.Timeout | null = null;
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            const delta = currentScrollY - lastScrollY;
-            lastScrollY = currentScrollY;
-
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    const velocity = Math.min(Math.abs(delta), 120);
-                    if (velocity > 3) {
-                        const stretchFactor = 1 + (velocity / 120) * 0.045; // elastic stretch up to ~1.045
-                        setStretchOrigin(delta > 0 ? 'top' : 'bottom');
-                        setScrollStretch(stretchFactor);
-
-                        if (resetTimer) clearTimeout(resetTimer);
-                        resetTimer = setTimeout(() => {
-                            setScrollStretch(1);
-                        }, 180);
-                    }
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-            if (resetTimer) clearTimeout(resetTimer);
-        };
-    }, []);
-
     const isItemActive = (href: unknown) => {
         try {
-            const raw = typeof href === 'string' ? href : ((href as { url?: string })?.url ?? String(href));
+            const raw =
+                typeof href === 'string'
+                    ? href
+                    : ((href as { url?: string })?.url ?? String(href));
             const itemPath = new URL(raw, 'http://localhost').pathname;
-            if (itemPath === '/' || itemPath === '/dashboard' || itemPath === '/admin/dashboard') {
-                return url === itemPath || (itemPath === '/dashboard' && url === '/');
+            if (
+                itemPath === '/' ||
+                itemPath === '/dashboard' ||
+                itemPath === '/admin/dashboard'
+            ) {
+                return (
+                    url === itemPath ||
+                    (itemPath === '/dashboard' && url === '/')
+                );
             }
             return url.startsWith(itemPath);
         } catch {
@@ -121,63 +92,110 @@ export function AppSidebar({ onOpenPayment }: Props) {
     // Organization navigation items with permission guards
     const orgItems = [
         { title: 'Accueil', href: dashboard(), icon: Home },
-        { title: 'Alumni', href: alumniIndex(), icon: GraduationCap, permission: 'alumni.view' },
-        { title: 'Événements', href: eventsIndex(), icon: CalendarDays, permission: 'events.view' },
-        { title: 'Campagnes', href: campaignsIndex(), icon: Mail, permission: 'campaigns.view' },
-        { title: 'Assistant IA', href: assistantIndex(), icon: Sparkles, permission: 'assistant.use' },
-        { title: 'Utilisateurs', href: usersIndex(), icon: UsersRound, permission: 'users.view' },
-        { title: 'Rôles & Droits', href: rolesIndex(), icon: ShieldCheck, permission: 'roles.view' },
-        { title: 'Organisation', href: organizationSettings(), icon: Building2, permission: 'organization.update' },
+        {
+            title: 'Alumni',
+            href: alumniIndex(),
+            icon: GraduationCap,
+            permission: 'alumni.view',
+        },
+        {
+            title: 'Événements',
+            href: eventsIndex(),
+            icon: CalendarDays,
+            permission: 'events.view',
+        },
+        {
+            title: 'Campagnes',
+            href: campaignsIndex(),
+            icon: Mail,
+            permission: 'campaigns.view',
+        },
+        {
+            title: 'Assistant IA',
+            href: assistantIndex(),
+            icon: Sparkles,
+            permission: 'assistant.use',
+        },
+        {
+            title: 'Utilisateurs',
+            href: usersIndex(),
+            icon: UsersRound,
+            permission: 'users.view',
+        },
+        {
+            title: 'Rôles & Droits',
+            href: rolesIndex(),
+            icon: ShieldCheck,
+            permission: 'roles.view',
+        },
+        {
+            title: 'Organisation',
+            href: organizationSettings(),
+            icon: Building2,
+            permission: 'organization.update',
+        },
         { title: 'Corbeille', href: trashIndex(), icon: Trash2 },
     ].filter((item) => !item.permission || can(item.permission));
 
     // SuperAdmin navigation items
+    // Platform navigation: the Super Administrator role decides which links appear.
+    // The dashboard and the roles screen always stay, so the role can be repaired.
     const adminItems = [
         { title: 'Tableau de bord', href: adminDashboard(), icon: Home },
-        { title: 'Organisations', href: adminOrganizations(), icon: Building2 },
-        { title: 'Plans & Tarifs', href: adminPlans(), icon: Layers },
-        { title: 'Abonnements', href: adminSubscriptions(), icon: CreditCard },
-    ];
+        {
+            title: 'Organisations',
+            href: adminOrganizations(),
+            icon: Building2,
+            permission: 'platform.organizations',
+        },
+        {
+            title: 'Plans & Tarifs',
+            href: adminPlans(),
+            icon: Layers,
+            permission: 'platform.plans',
+        },
+        {
+            title: 'Abonnements',
+            href: adminSubscriptions(),
+            icon: CreditCard,
+            permission: 'platform.subscriptions',
+        },
+        { title: 'Rôles & Droits', href: adminRoles(), icon: ShieldCheck },
+    ].filter(
+        (item) =>
+            !item.permission ||
+            (auth?.permissions ?? []).includes(item.permission),
+    );
 
     const currentItems = isSuperAdmin ? adminItems : orgItems;
 
     return (
-        <aside
-            style={{
-                transform: `scaleY(${scrollStretch})`,
-                transformOrigin: stretchOrigin === 'top' ? 'top center' : 'bottom center',
-                transition:
-                    scrollStretch === 1
-                        ? 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                        : 'transform 0.08s ease-out',
-            }}
-            className="w-full md:w-[230px] lg:w-[245px] shrink-0 sticky top-4 self-start h-[calc(100vh-2rem)] z-40 flex flex-col justify-between gap-3 select-none font-sans"
-        >
+        <SidebarFrame>
             {/* =========================================================================
                 BULLE 1: Capsule principale (Navigation & Logo) en NOIR OUVERT
                ========================================================================= */}
-            <div className="w-full bg-gradient-to-b from-[#0a0c10]/98 via-[#10131a]/96 to-[#07080b]/98 backdrop-blur-2xl rounded-[38px] border border-white/12 shadow-2xl shadow-black/60 p-2.5 sm:p-3 flex flex-col relative overflow-visible ring-1 ring-white/5">
+            <div className="relative flex w-full flex-col overflow-visible rounded-[38px] border border-white/12 bg-gradient-to-b from-[#0a0c10]/98 via-[#10131a]/96 to-[#07080b]/98 p-2.5 shadow-2xl ring-1 shadow-black/60 ring-white/5 backdrop-blur-2xl sm:p-3">
                 {/* Dark Glass Lighting Highlights */}
-                <div className="absolute -top-12 -left-12 size-32 rounded-full bg-cyan-500/10 blur-2xl pointer-events-none" />
-                <div className="absolute -bottom-12 -right-12 size-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
+                <div className="pointer-events-none absolute -top-12 -left-12 size-32 rounded-full bg-cyan-500/10 blur-2xl" />
+                <div className="pointer-events-none absolute -right-12 -bottom-12 size-32 rounded-full bg-blue-500/10 blur-2xl" />
 
                 {/* Top Header: Logo */}
-                <div className="flex items-center gap-2.5 px-1 pt-1 pb-2 relative z-10 border-b border-white/10">
+                <div className="relative z-10 flex items-center gap-2.5 border-b border-white/10 px-1 pt-1 pb-2">
                     <Link
                         href={homeHref}
-                        className="flex items-center gap-2.5 group cursor-pointer min-w-0"
+                        className="group flex min-w-0 cursor-pointer items-center gap-2.5"
                         title="Aeterna"
                     >
                         {/* Glass Bubble with Aeterna Logo */}
-                        <div className="droplet-item droplet-circle size-11 rounded-full bg-gradient-to-tr from-white/15 via-white/10 to-white/20 backdrop-blur-md border border-white/25 flex items-center justify-center text-white shadow-lg shadow-black/40 shrink-0">
+                        <div className="droplet-item droplet-circle flex size-11 shrink-0 items-center justify-center rounded-full border border-white/25 bg-gradient-to-tr from-white/15 via-white/10 to-white/20 text-white shadow-lg shadow-black/40 backdrop-blur-md">
                             <AppLogoIcon className="size-6 text-white drop-shadow-sm" />
                         </div>
 
-                        <div className="flex flex-col min-w-0 pr-1">
-                            <span className="text-white font-normal text-sm uppercase leading-tight truncate tracking-normal">
+                        <div className="flex min-w-0 flex-col pr-1">
+                            <span className="truncate text-sm leading-tight font-normal tracking-normal text-white uppercase">
                                 Aeterna
                             </span>
-                            <span className="text-slate-400 text-[10px] font-light uppercase opacity-90 tracking-normal">
+                            <span className="text-[10px] font-light tracking-normal text-slate-400 uppercase opacity-90">
                                 Alumni SaaS
                             </span>
                         </div>
@@ -185,7 +203,7 @@ export function AppSidebar({ onOpenPayment }: Props) {
                 </div>
 
                 {/* Navigation Items with Perfect Superposition & Alignment */}
-                <nav className="flex flex-col gap-1.5 mt-2.5 no-scrollbar overflow-y-auto max-h-[calc(100vh-17rem)] relative z-10">
+                <nav className="no-scrollbar relative z-10 mt-2.5 flex max-h-[calc(100vh-17rem)] flex-col gap-1.5 overflow-y-auto">
                     {currentItems.map((item) => {
                         const active = isItemActive(item.href);
                         const Icon = item.icon;
@@ -196,15 +214,15 @@ export function AppSidebar({ onOpenPayment }: Props) {
                                     key={item.title}
                                     href={item.href}
                                     prefetch
-                                    className="liquid-active-pill group relative w-full flex items-center gap-3 px-3.5 py-2.5 text-xs transition-all duration-200"
+                                    className="liquid-active-pill group relative flex w-full items-center gap-3 px-3.5 py-2.5 text-xs transition-all duration-200"
                                 >
-                                    <div className="size-8 rounded-full bg-black/10 text-black flex items-center justify-center shrink-0">
+                                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-black/10 text-black">
                                         <Icon className="size-4.5" />
                                     </div>
-                                    <span className="truncate tracking-normal font-semibold text-black flex-1">
+                                    <span className="flex-1 truncate font-semibold tracking-normal text-black">
                                         {item.title}
                                     </span>
-                                    <span className="size-1.5 rounded-full bg-black/40 mr-1 shrink-0" />
+                                    <span className="mr-1 size-1.5 shrink-0 rounded-full bg-black/40" />
                                 </Link>
                             );
                         }
@@ -214,12 +232,12 @@ export function AppSidebar({ onOpenPayment }: Props) {
                                 key={item.title}
                                 href={item.href}
                                 prefetch
-                                className="droplet-bubble-stretch group relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-normal text-white/80 hover:text-white bg-white/5 hover:bg-white/12 border border-white/5 hover:border-white/15 transition-[transform,background-color,border-color,box-shadow,color] duration-150 ease-out active:scale-[0.97] will-change-transform"
+                                className="droplet-bubble-stretch group relative flex w-full items-center gap-3 rounded-full border border-white/5 bg-white/5 px-3.5 py-2.5 text-xs font-normal text-white/80 transition-[transform,background-color,border-color,box-shadow,color] duration-150 ease-out will-change-transform hover:border-white/15 hover:bg-white/12 hover:text-white active:scale-[0.97]"
                             >
-                                <div className="size-8 rounded-full bg-white/10 group-hover:bg-white/20 text-white/90 group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/90 transition-colors group-hover:bg-white/20 group-hover:text-white">
                                     <Icon className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
                                 </div>
-                                <span className="truncate tracking-normal font-normal text-white/85 group-hover:text-white flex-1">
+                                <span className="flex-1 truncate font-normal tracking-normal text-white/85 group-hover:text-white">
                                     {item.title}
                                 </span>
                             </Link>
@@ -231,15 +249,15 @@ export function AppSidebar({ onOpenPayment }: Props) {
                         <button
                             type="button"
                             onClick={onOpenPayment}
-                            className="droplet-bubble-stretch group relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-normal text-emerald-300 hover:text-white bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/25 transition-[transform,background-color,border-color,box-shadow,color] duration-150 ease-out active:scale-[0.97] will-change-transform cursor-pointer mt-1"
+                            className="droplet-bubble-stretch group relative mt-1 flex w-full cursor-pointer items-center gap-3 rounded-full border border-emerald-400/25 bg-emerald-500/15 px-3.5 py-2.5 text-xs font-normal text-emerald-300 transition-[transform,background-color,border-color,box-shadow,color] duration-150 ease-out will-change-transform hover:bg-emerald-500/25 hover:text-white active:scale-[0.97]"
                         >
-                            <div className="size-8 rounded-full bg-emerald-500/25 group-hover:bg-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0 transition-colors">
+                            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/25 text-emerald-300 transition-colors group-hover:bg-emerald-500/40">
                                 <Wallet className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
                             </div>
-                            <span className="truncate tracking-normal text-left flex-1">
+                            <span className="flex-1 truncate text-left tracking-normal">
                                 Paiements &amp; Cartes
                             </span>
-                            <span className="size-2 rounded-full bg-emerald-400 animate-pulse mr-1 shrink-0" />
+                            <span className="mr-1 size-2 shrink-0 animate-pulse rounded-full bg-emerald-400" />
                         </button>
                     )}
                 </nav>
@@ -248,28 +266,28 @@ export function AppSidebar({ onOpenPayment }: Props) {
             {/* =========================================================================
                 BULLE 2: Mini capsule inférieure (Profil, Paramètres, Logout) en NOIR
                ========================================================================= */}
-            <div className="w-full mt-auto bg-gradient-to-b from-[#0a0c10]/98 via-[#10131a]/96 to-[#07080b]/98 backdrop-blur-2xl rounded-[32px] border border-white/12 shadow-xl shadow-black/50 p-2 sm:p-2.5 flex flex-col gap-2 relative overflow-hidden ring-1 ring-white/5">
+            <div className="relative mt-auto flex w-full flex-col gap-2 overflow-hidden rounded-[32px] border border-white/12 bg-gradient-to-b from-[#0a0c10]/98 via-[#10131a]/96 to-[#07080b]/98 p-2 shadow-xl ring-1 shadow-black/50 ring-white/5 backdrop-blur-2xl sm:p-2.5">
                 {/* Expanded User Profile Header */}
                 <Link
                     href={editProfile()}
-                    className="droplet-item droplet-bubble-stretch flex items-center gap-2.5 p-1.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] group will-change-transform"
+                    className="droplet-item droplet-bubble-stretch group flex items-center gap-2.5 rounded-2xl border border-white/5 bg-white/5 p-1.5 transition-[transform,background-color,border-color] duration-150 ease-out will-change-transform hover:bg-white/10 active:scale-[0.98]"
                     title="Voir mon profil"
                 >
-                    <div className="relative size-10 rounded-full shrink-0">
+                    <div className="relative size-10 shrink-0 rounded-full">
                         <img
                             src={user?.avatar || '/images/avatars/admin.jpg'}
                             alt={user?.name || 'Mon Profil'}
-                            className="size-full rounded-full object-cover border border-white/25 shadow-md"
+                            className="size-full rounded-full border border-white/25 object-cover shadow-md"
                         />
-                        <span className="absolute -bottom-0.5 -right-0.5 px-1 min-w-[18px] h-4 rounded-full bg-black/90 border border-white/40 text-[9px] font-bold text-white flex items-center justify-center leading-none shadow-sm tracking-tight">
+                        <span className="absolute -right-0.5 -bottom-0.5 flex h-4 min-w-[18px] items-center justify-center rounded-full border border-white/40 bg-black/90 px-1 text-[9px] leading-none font-bold tracking-tight text-white shadow-sm">
                             {initials}
                         </span>
                     </div>
-                    <div className="flex flex-col min-w-0 pr-1">
-                        <span className="text-xs font-normal text-white truncate tracking-normal group-hover:text-cyan-200 transition-colors">
+                    <div className="flex min-w-0 flex-col pr-1">
+                        <span className="truncate text-xs font-normal tracking-normal text-white transition-colors group-hover:text-cyan-200">
                             {user?.name || 'Mon Profil'}
                         </span>
-                        <span className="text-[10px] font-light text-slate-400 truncate tracking-normal">
+                        <span className="truncate text-[10px] font-light tracking-normal text-slate-400">
                             {isSuperAdmin
                                 ? 'Super Administrateur'
                                 : organization?.name || 'Administrateur'}
@@ -278,12 +296,12 @@ export function AppSidebar({ onOpenPayment }: Props) {
                 </Link>
 
                 {/* Expanded Actions Row */}
-                <div className="grid grid-cols-3 gap-1 pt-1 border-t border-white/10">
+                <div className="grid grid-cols-3 gap-1 border-t border-white/10 pt-1">
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Link
                                 href={editProfile()}
-                                className="droplet-item droplet-bubble-stretch flex items-center justify-center py-2 rounded-xl text-white/70 hover:text-white bg-white/5 hover:bg-white/15 transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.95] text-xs will-change-transform"
+                                className="droplet-item droplet-bubble-stretch flex items-center justify-center rounded-xl bg-white/5 py-2 text-xs text-white/70 transition-[transform,background-color,color] duration-150 ease-out will-change-transform hover:bg-white/15 hover:text-white active:scale-[0.95]"
                                 title="Paramètres"
                             >
                                 <Settings className="size-4" />
@@ -291,7 +309,7 @@ export function AppSidebar({ onOpenPayment }: Props) {
                         </TooltipTrigger>
                         <TooltipContent
                             side="top"
-                            className="bg-[#0b0c10] text-white border-white/20 text-xs rounded-xl px-2.5 py-1"
+                            className="rounded-xl border-white/20 bg-[#0b0c10] px-2.5 py-1 text-xs text-white"
                         >
                             Paramètres
                         </TooltipContent>
@@ -302,7 +320,7 @@ export function AppSidebar({ onOpenPayment }: Props) {
                             <button
                                 type="button"
                                 onClick={onOpenPayment}
-                                className="droplet-item droplet-bubble-stretch flex items-center justify-center py-2 rounded-xl text-white/70 hover:text-white bg-white/5 hover:bg-white/15 transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.95] text-xs cursor-pointer will-change-transform"
+                                className="droplet-item droplet-bubble-stretch flex cursor-pointer items-center justify-center rounded-xl bg-white/5 py-2 text-xs text-white/70 transition-[transform,background-color,color] duration-150 ease-out will-change-transform hover:bg-white/15 hover:text-white active:scale-[0.95]"
                                 title="Aide & Support"
                             >
                                 <LifeBuoy className="size-4" />
@@ -310,7 +328,7 @@ export function AppSidebar({ onOpenPayment }: Props) {
                         </TooltipTrigger>
                         <TooltipContent
                             side="top"
-                            className="bg-[#0b0c10] text-white border-white/20 text-xs rounded-xl px-2.5 py-1"
+                            className="rounded-xl border-white/20 bg-[#0b0c10] px-2.5 py-1 text-xs text-white"
                         >
                             Aide &amp; Support
                         </TooltipContent>
@@ -322,7 +340,7 @@ export function AppSidebar({ onOpenPayment }: Props) {
                                 href={logout()}
                                 method="post"
                                 as="button"
-                                className="droplet-item droplet-bubble-stretch flex items-center justify-center py-2 rounded-xl text-rose-300 hover:text-rose-100 bg-rose-500/10 hover:bg-rose-500/25 transition-[transform,background-color,color] duration-150 ease-out active:scale-[0.95] text-xs cursor-pointer will-change-transform"
+                                className="droplet-item droplet-bubble-stretch flex cursor-pointer items-center justify-center rounded-xl bg-rose-500/10 py-2 text-xs text-rose-300 transition-[transform,background-color,color] duration-150 ease-out will-change-transform hover:bg-rose-500/25 hover:text-rose-100 active:scale-[0.95]"
                                 title="Déconnexion"
                             >
                                 <LogOut className="size-4" />
@@ -330,13 +348,13 @@ export function AppSidebar({ onOpenPayment }: Props) {
                         </TooltipTrigger>
                         <TooltipContent
                             side="top"
-                            className="bg-[#0b0c10] text-rose-300 border-white/20 text-xs rounded-xl px-2.5 py-1"
+                            className="rounded-xl border-white/20 bg-[#0b0c10] px-2.5 py-1 text-xs text-rose-300"
                         >
                             Déconnexion
                         </TooltipContent>
                     </Tooltip>
                 </div>
             </div>
-        </aside>
+        </SidebarFrame>
     );
 }

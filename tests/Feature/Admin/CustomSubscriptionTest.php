@@ -39,8 +39,9 @@ class CustomSubscriptionTest extends TestCase
         }
 
         $role = Role::factory()->create([
-            'organization_id' => null, 'slug' => 'super-admin', 'is_system' => true,
+            'organization_id' => null, 'slug' => 'super-admin', 'is_system' => true, 'guard' => 'platform',
         ]);
+        $role->permissions()->sync(Permission::whereIn('slug', Permissions::platformSlugs())->pluck('id'));
         $this->superAdmin = User::factory()->create([
             'organization_id' => null, 'role_id' => $role->id,
         ]);

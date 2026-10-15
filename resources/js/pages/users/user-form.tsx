@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { index } from '@/routes/users';
 
-export type RoleOption = { id: number; name: string; is_system: boolean };
+export type RoleOption = { id: number; name: string };
 
 export type UserFormValues = {
     id?: number;
@@ -155,7 +155,6 @@ export function UserForm({ action, user, roles, submitLabel }: Props) {
                                 {roles.map((role) => (
                                     <option key={role.id} value={role.id}>
                                         {role.name}
-                                        {role.is_system ? ' (systeme)' : ''}
                                     </option>
                                 ))}
                             </select>

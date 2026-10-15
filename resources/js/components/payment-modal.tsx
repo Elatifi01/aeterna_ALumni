@@ -22,7 +22,7 @@ export type PaymentModalProps = {
 export function PaymentModal({
     isOpen,
     onClose,
-    currentPlan = 'Free',
+    currentPlan = 'Démo',
     onPaymentSuccess,
 }: PaymentModalProps) {
     const [mode, setMode] = useState<'subscription' | 'direct'>('subscription');

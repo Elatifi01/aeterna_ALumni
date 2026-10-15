@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -10,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class PaymentController extends Controller
@@ -30,17 +28,12 @@ class PaymentController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        $user = Auth::user();
-        $organization = $user?->organization ?? Organization::first();
-
-        if (!$organization) {
-            return response()->json(['error' => 'Aucune organisation trouvée.'], 404);
-        }
+        $organization = $request->user('web')->organization;
 
         // Handle or create subscription
         $subscription = Subscription::where('organization_id', $organization->id)->latest()->first();
 
-        if (!empty($validated['plan_slug'])) {
+        if (! empty($validated['plan_slug'])) {
             $plan = Plan::where('slug', $validated['plan_slug'])->first();
             if ($plan) {
                 $billingCycle = $validated['billing_cycle'] ?? 'monthly';
@@ -71,7 +64,7 @@ class PaymentController extends Controller
         }
 
         // If no subscription exists yet, link to first or create a default one
-        if (!$subscription) {
+        if (! $subscription) {
             $defaultPlan = Plan::firstOrCreate(
                 ['slug' => 'pro'],
                 [
@@ -104,7 +97,7 @@ class PaymentController extends Controller
             'currency' => 'USD',
             'status' => 'paid',
             'provider' => $validated['provider'] ?? 'credit_card',
-            'provider_reference' => 'PAY_' . strtoupper(Str::random(10)),
+            'provider_reference' => 'PAY_'.strtoupper(Str::random(10)),
             'paid_at' => Carbon::now(),
         ]);
 
@@ -125,19 +118,15 @@ class PaymentController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Paiement de $' . number_format($validated['amount'], 2) . ' effectué avec succès !');
+        return back()->with('success', 'Paiement de $'.number_format($validated['amount'], 2).' effectué avec succès !');
     }
 
     /**
      * List payments for the current organization.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $organization = Auth::user()?->organization ?? Organization::first();
-
-        if (!$organization) {
-            return response()->json([]);
-        }
+        $organization = $request->user('web')->organization;
 
         $payments = Payment::where('organization_id', $organization->id)
             ->latest()

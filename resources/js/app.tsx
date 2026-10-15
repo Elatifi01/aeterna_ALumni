@@ -14,6 +14,8 @@ void createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name === 'welcome':
+            case name === 'signup':
+            case name === 'trial-ended':
             case name === 'dashboard':
             case name === 'admin/dashboard':
                 return null;

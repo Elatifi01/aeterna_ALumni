@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\PlanController;
+use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\AlumniAccountController;
 use App\Http\Controllers\AlumniController;
@@ -12,24 +13,38 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrganizationSettingsController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\TrashController;
-use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SignupController;
+use App\Http\Controllers\TrashController;
+use App\Http\Controllers\TrialController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return Auth::check()
-        ? redirect()->route(Auth::user()->isSuperAdmin() ? 'admin.dashboard' : 'dashboard')
-        : redirect()->route('login');
-})->name('home');
-Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
-Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::post('demo', [LandingController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('demo-requests.store');
+
+Route::get('inscription/{plan:slug}', [SignupController::class, 'create'])
+    ->middleware('guest')
+    ->name('signup.create');
+Route::post('inscription/{plan:slug}', [SignupController::class, 'store'])
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('signup.store');
+
+Route::get('essai-termine', TrialController::class)
+    ->middleware('auth')
+    ->name('trial.ended');
 
 Route::middleware(['auth', 'organization'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    // Payments belong to the signed in organization; they were reachable by anyone before.
+    Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
 
     Route::get('assistant', [AssistantController::class, 'index'])->name('assistant.index');
     Route::get('assistant/{conversation}', [AssistantController::class, 'index'])
@@ -117,17 +132,27 @@ Route::middleware(['auth', 'super-admin'])
     ->group(function () {
         Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
 
-        Route::resource('organizations', OrganizationController::class)
-            ->except(['show', 'destroy']);
-        Route::patch('organizations/{organization}/active', [OrganizationController::class, 'toggleActive'])
-            ->name('organizations.toggle-active');
+        Route::middleware('platform-can:platform.organizations')->group(function () {
+            Route::resource('organizations', OrganizationController::class)
+                ->except(['show', 'destroy']);
+            Route::patch('organizations/{organization}/essai', [OrganizationController::class, 'extendTrial'])
+                ->name('organizations.extend-trial');
+            Route::patch('organizations/{organization}/active', [OrganizationController::class, 'toggleActive'])
+                ->name('organizations.toggle-active');
+        });
 
-        Route::resource('plans', PlanController::class)->except(['show']);
+        Route::resource('plans', PlanController::class)
+            ->except(['show'])
+            ->middleware('platform-can:platform.plans');
 
-        Route::resource('subscriptions', SubscriptionController::class)
-            ->only(['index', 'create', 'store']);
-        Route::patch('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])
-            ->name('subscriptions.cancel');
+        Route::resource('roles', AdminRoleController::class)->except(['show']);
+
+        Route::middleware('platform-can:platform.subscriptions')->group(function () {
+            Route::resource('subscriptions', SubscriptionController::class)
+                ->only(['index', 'create', 'store']);
+            Route::patch('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])
+                ->name('subscriptions.cancel');
+        });
     });
 
 require __DIR__.'/portal.php';

@@ -30,7 +30,7 @@ type UserRow = {
     is_self: boolean;
 };
 
-type RoleOption = { id: number; name: string; is_system: boolean };
+type RoleOption = { id: number; name: string };
 
 type Props = {
     users: Paginated<UserRow>;
